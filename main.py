@@ -1,27 +1,14 @@
-import logging
+import asyncio
 
-from aiogram import Bot, Dispatcher, types, executor
-
-API_TOKEN = 'BOT TOKEN HERE'
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
-# Initialize bot and dispatcher
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
+from aiogram.utils import executor
+# from config.check_new_member import *
+import user
+# import admin
+from create_bot import dp
 
 
-@dp.message_handler(commands=['start', 'help'])
-async def send_welcome(message: types.Message):
-    await message.reply("Hi!\nI'm EchoBot!\nPowered by aiogram.")
-
-
-@dp.message_handler()
-async def echo(message: types.Message):
-
-    await message.answer(message.text)
-
-
+#loop = asyncio.get_event_loop()
+#loop.create_task(check_admin_offer())
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=False)
+
