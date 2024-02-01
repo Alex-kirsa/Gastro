@@ -1,33 +1,35 @@
-import logging
-
 from aiogram import types, executor
 from aiogram import Bot, Dispatcher
 
-API_TOKEN = 'BOT TOKEN HERE'
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
-# Initialize bot and dispatcher
-
-
+import asyncio
 
 from create_bot.create_bot import bot, dp
 
-bot:Bot = bot
-dp:Dispatcher = dp
+from major.manager import UserManager
+
+from icecream import ic
+
+bot: Bot = bot
+dp: Dispatcher = dp
 
 
-@dp.message_handler(commands=['start', 'help'])
+@dp.message_handler(commands=["start", "help"])
 async def send_welcome(message: types.Message):
-    await message.reply("Hi!\nI'm EchoBot!\nPowered by aiogram.")
+    manager = UserManager(message.from_user.id)
+    await message.answer(manager.text.stock.get("start_message"))
+    await asyncio.sleep(0.1)
+    await empty(message)
 
 
 @dp.message_handler()
-async def echo(message: types.Message):
+async def empty(message: types.Message):
+    manager = UserManager(message.from_user.id)
+    reply_markup = await manager.reply_markup.get_marcup("choose_option_to_continue")
+    await message.answer(
+        manager.text.stock.get("choose_option_to_continue"),
+        reply_markup=reply_markup,
+    )
 
-    await message.answer(message.text)
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=False)
