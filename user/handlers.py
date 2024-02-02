@@ -15,21 +15,16 @@ bot: Bot = bot
 dp: Dispatcher = dp
 
 
-# @dp.message_handler(commands=["start", "help"])
-# async def send_welcome(message: types.Message):
-#    manager = UserManager()
-
-
-@dp.callback_query_handler(lambda call: True, state="*")
-async def but_filter(call: types.CallbackQuery, state: FSMContext):
+@dp.callback_query_handler()
+async def callback_query_handler(call: types.CallbackQuery):
     manager = UserManager(call=call)
     await manager.answer()
 
 
 @dp.message_handler(state="*")
-async def empty(message: types.Message, state: FSMContext):
+async def message_handler(message: types.Message, state: FSMContext):
     # ic(await state.get_state())
-    manager = UserManager(msg=message, state=await state.get_state())
+    manager = UserManager(msg=message, state_name=await state.get_state())
     await manager.answer()
 
 

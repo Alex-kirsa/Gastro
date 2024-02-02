@@ -1,5 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from icecream import ic
+
+# from aiogram.utils.callback_data import CallbackData
+# from icecream import ic
 
 
 class UserReplyMarkup:
@@ -11,7 +13,7 @@ class UserReplyMarkup:
             },
             "send_booking_req": {
                 "text": "Відправити запит на бронювання події",
-                "callback_data": "send_booking_req",
+                "callback_data": "change_form",
             },
             "leave_review": {
                 "text": "Залишити відгук",
@@ -29,6 +31,42 @@ class UserReplyMarkup:
                 "text": "Переглянути останні новини студії",
                 "callback_data": "view_latest_studio_news",
             },
+        },
+        "when_event_happened": {
+            "event_happedned_day": {
+                "text": "Вдень",
+                "callback_data": "when_event_happened:д",
+            },
+            "event_happedned_evening": {
+                "text": "Ввечері",
+                "callback_data": "when_event_happened:в",
+            },
+        },
+        "change_form": {
+            "name": {
+                "text": "Змінити ім'я",
+                "callback_data": "change_form:name",
+            },
+            "phone": {
+                "text": "Змінити телефон",
+                "callback_data": "change_form:phone",
+            },
+            "action": {
+                "text": "Змінити подію",
+                "callback_data": "change_form:action",
+            },
+            "num_of_people": {
+                "text": "Змінити кількість людей",
+                "callback_data": "change_form:num_of_people",
+            },
+            "desired_date": {
+                "text": "Змінити бажану дату",
+                "callback_data": "change_form:desired_date",
+            },
+        },
+        "should_we_send_form": {
+            "text": "Надіслати запит",
+            "callback_data": "should_we_send_form",
         },
     }
 
