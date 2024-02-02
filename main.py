@@ -6,9 +6,6 @@ from create_bot import dp
 
 from aiogram.utils import executor
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
 
 # loop = asyncio.get_event_loop()
 # loop.create_task(check_admin_offer())

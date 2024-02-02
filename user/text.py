@@ -1,3 +1,7 @@
+from .states import *
+from aiogram import types
+
+
 class UserText:
     MESSAGES = {
         "start_message": (
@@ -12,6 +16,7 @@ class UserText:
             "прийму ваш щирий та чесний відгук про ваш захід і нашу студію, щоб в наступний раз ми були якомога ближче до “10 з 10”\n"
         ),
         "choose_option_to_continue": "Для того щоб продовжити виберіть із меню наступну дію:",
+        "enter_date": "Введіть дату в форматові дд.мм.рррр.",
     }
 
     def __init__(self):
