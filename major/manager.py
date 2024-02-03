@@ -3,13 +3,16 @@ from user.reply_marcups import UserReplyMarkup
 from user.states import UserStates
 from google_sheets import GoogleSheets
 
-from create_bot import storage
+from config.settings import CHANNEL_ID, MANAGER_PHONE_NUMBER, ADMINS_LIST
+from create_bot import storage, bot
 
 
 # from user.callbacks import UserCallbackData
 
 from aiogram.dispatcher import FSMContext
 from aiogram import types
+
+from database import Database
 
 # from aiogram.dispatcher import FSMContext
 
@@ -21,7 +24,11 @@ from icecream import ic
 
 
 class UserManager:
-    _commands_key = {"/start": "start_message", "/help": "start_message"}
+    _commands_key = {
+        "/start": "start_message",
+        "/help": "start_message",
+        "/admin": "admin_menu",
+    }
 
     def __init__(
         self,
@@ -34,6 +41,7 @@ class UserManager:
         self.states = UserStates(state_name)
         self.text = UserText()
         self.reply_marcup = UserReplyMarkup()
+        self.db = Database()
 
         if self.call:
             source = self.call
@@ -59,6 +67,7 @@ class UserManager:
         await getattr(self, self.key_data)()
 
     async def start_message(self):
+        self.db.check_user_in_db(self.msg.from_user.id)
         await self.msg.answer(await self.text.get_text(self.key_data))
         await asyncio.sleep(0.2)
         await self.empty()
@@ -72,9 +81,9 @@ class UserManager:
 
     async def get_recipe(self):
         await self.call.message.delete()
-        self.states.state_name = "enter_date"
-        await self.call.message.answer(self.text.stock.get(self.states.state_name))
-        await getattr(self.states, self.states.state_name).set()
+        self.key_data = "enter_date"
+        await self.call.message.answer(await self.text.get_text(self.key_data))
+        await getattr(self.states, self.key_data).set()
 
     async def _is_date(self, msg: str) -> bool:
         date = list()
@@ -82,16 +91,18 @@ class UserManager:
             if not sym.isdigit():
                 date = msg.split(sym)
                 break
-        try:
-            if datetime.date(day=int(date[0]), month=int(date[1]), year=int(date[2])):
-                return True
-        finally:
-            return False
+        # ic("ASD")
+        # try:
+        if datetime.date(day=int(date[0]), month=int(date[1]), year=int(date[2])):
+            return True
+        # finally:
+        #    return False
 
     async def enter_date(self):
+        # ic(self.msg.text)
         if await self._is_date(self.msg.text):
             self.gsheets = GoogleSheets()
-            self.memory_state.update_data({"date": self.msg.text})
+            await self.memory_state.update_data({"date": self.msg.text})
 
             if await self.gsheets.time_of_day_are_two(self.msg.text):
                 self.key_data = "when_event_happened"
@@ -99,19 +110,22 @@ class UserManager:
                     self.key_data, row_width=2
                 )
                 await self.msg.answer(
-                    self.text.get_text(self.key_data),
+                    await self.text.get_text(self.key_data),
                     reply_markup=reply_marcup,
                 )
             else:
                 self.key_data = "food_was_then"
                 await self.food_was_then()
         else:
-            await self.msg.answer(self.text.get_text(self.states.state_name))
+            await self.msg.answer(await self.text.get_text(self.states.state_name))
 
     async def when_event_happened(self):
-        self.states.state.update_data({"time_of_day": self.call.data.split(":")[1]})
+        await self.states.state.update_data(
+            {"time_of_day": self.call.data.split(":")[1]}
+        )
         self.key_data = "food_was_then"
-        await self.msg.answer(self.text.get_text(self.key_data))
+        await self.food_was_then()
+        # await self.msg.answer(self.text.get_text(self.key_data))
 
     async def food_was_then(self):
         data: dict = await self.memory_state.get_data()
@@ -123,7 +137,7 @@ class UserManager:
 
         text = []
 
-        ic(all_text)
+        # ic(all_text)
         for el in all_text:
             text.append(
                 '<a href="{url}">{text}</a>'.format(
@@ -133,7 +147,7 @@ class UserManager:
 
         text = "\n".join(text)
 
-        await self.msg.answer(self.text.stock.get(self.key_data).format(text))
+        await self.msg.answer(await self.text.get_text(self.key_data).format(text))
 
     async def send_booking_req(self):
         await self.call.message.answer(
@@ -156,24 +170,24 @@ class UserManager:
             return
         await self.call.message.delete()
         await asyncio.sleep(0.2)
-        await self.send_change_form_message(source=self.call.message)
+        await self.call.message.answer(**self._send_change_form_message())
 
-    async def send_change_form_message(self, source):
+    async def _send_change_form_message(self, source):
         data = await self.memory_state.get_data()
-        ic(data)
+        # ic(data)
         dic = dict()
         self.cou = 0
         for el in self.reply_marcup.MESSAGES.get("change_form"):
             dg = data.get(el, await self._cou_change_form())
             dic.update({f"{el}": dg})
 
-        await source.answer(
-            await self.text.get_text(
+        return {
+            "text": self.text.get_text(
                 key="change_form",
                 **dic,
             ),
-            reply_markup=await self.reply_marcup.get_marcup("change_form"),
-        )
+            "reply_markup": await self.reply_marcup.get_marcup("change_form"),
+        }
 
     async def _cou_change_form(self):
         self.cou += 1
@@ -189,19 +203,85 @@ class UserManager:
             )
         else:
             await self.memory_state.update_data({change_form_state: self.msg.text})
-            await asyncio.sleep(0.1)
-            await self.send_change_form_message(source=self.msg)
+            await asyncio.sleep(0.2)
+            await self.msg.answer(**self._send_change_form_message())
             await self.memory_state.finish()
 
             if self.cou == 0:
                 self.key_data = "should_we_send_form"
-                asyncio.sleep(0.1)
+                await asyncio.sleep(0.2)
                 await self.msg.answer(
                     await self.text.get_text(key=self.key_data),
                     reply_markup=await self.reply_marcup.get_marcup(key=self.key_data),
                 )
+                await self.memory_state.update_data(
+                    {
+                        "book_message": {
+                            "message_id": self.msg.message_id,
+                            "from_chat_id": self.msg.chat.id,
+                        }
+                    }
+                )
+
+    async def leave_review(self):
+        await self.call.message.answer(await self.text.get_text("send_me_comment"))
+        await self.states.send_me_comment_message.set()
+
+    async def send_me_comment_message(self):
+        await self.memory_state.finish()
+        await self.msg.copy_to(CHANNEL_ID)
+        await asyncio.sleep(0.2)
+        await self.msg.answer(await self.text.get_text("message_sent"))
+        for u in ADMINS_LIST:
+            await bot.send_message(u, await self.text.get_text("new_comment"))
+            await self.msg.send_copy(u)
 
     async def should_we_send_form(self):
         self.key_data = "should_we_send_form"
+        data = self.memory_state.get_data()
+        for a in ADMINS_LIST:
+            await bot.copy_message(a, **data.get("book_message"))
+
         await self.call.message.edit_text(self.text.get_text(self.key_data))
         await self.call.message.edit_reply_markup(None)
+
+    async def contact_manager(self):
+        await bot.send_contact(
+            self.call.from_user.id,
+            phone_number=MANAGER_PHONE_NUMBER,
+            first_name="Менеджер",
+        )
+
+    async def view_latest_studio_news(self):
+        mailings = self.db.get_all_mailings()
+
+        if len(mailings) == 0:
+            await self.call.message.answer(await self.text.get_text("no_mailing"))
+        else:
+            await bot.copy_message(
+                chat_id=self.call.from_user.id,
+                from_chat_id=mailings[-1][1],
+                message_id=mailings[-1][0],
+            )
+
+    async def admin_menu(self):
+        if self.msg.from_user.id in ADMINS_LIST:
+            await self.msg.answer(
+                self.text.get_text("admin_menu"),
+                reply_markup=self.reply_marcup.get_marcup("admin_menu"),
+            )
+        else:
+            await self.empty()
+
+    async def mail_to_all_users(self):
+        await self.memory_state.set_state(self.states.admin_send_post)
+        await self.call.message.answer(self.text.get_text("send_post"))
+
+    async def admin_send_post(self):
+        await self.memory_state.finish()
+        users_id = self.db.get_all_users()
+        cou = 0
+        for u in users_id:
+            await self.msg.copy_to(u)
+            cou += 1
+        await self.msg.answer(self.text.get_text("admin_post_sent", cou=cou))

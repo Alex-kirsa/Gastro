@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types.web_app_info import WebAppInfo
 
 # from aiogram.utils.callback_data import CallbackData
 # from icecream import ic
@@ -25,7 +26,7 @@ class UserReplyMarkup:
             },
             "view_articles": {
                 "text": "Переглянути статті",
-                "callback_data": "view_articles",
+                "web_app": WebAppInfo(url="https://www.google.com"),
             },
             "view_latest_studio_news": {
                 "text": "Переглянути останні новини студії",
@@ -68,6 +69,7 @@ class UserReplyMarkup:
             "text": "Надіслати запит",
             "callback_data": "should_we_send_form",
         },
+        "admin_menu": {"mail_to_all_users": "Розсилка всім користувачам"},
     }
 
     def __init__(self):

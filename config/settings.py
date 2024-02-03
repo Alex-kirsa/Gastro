@@ -6,12 +6,14 @@ DEBUG = True
 dotenv.load_dotenv()
 if DEBUG:
     BOT_TOKEN = os.getenv("DEBUG_BOT_TOKEN")
-    # DATABASE_CONNECT = os.getenv("DEBUG_DATABASE")
-    CHANNEL_ID = os.getenv("CHANNEL_ID")
+    CHANNEL_ID = os.getenv("DEBUG_CHANNEL_ID")
+    MANAGER_PHONE_NUMBER = os.getenv("DEBUG_MANAGER_PHONE_NUMBER")
+    SPREADSHEET_ID = os.getenv("DEBUG_SPREADSHEET_ID")
 else:
     BOT_TOKEN = os.getenv("BOT_TOKEN")
-    # DATABASE_CONNECT = os.getenv("DATABASE_CONNECT")
-    CHANNEL_ID = os.getenv("DEBUG_CHANNEL_ID")
+    CHANNEL_ID = os.getenv("CHANNEL_ID")
+    MANAGER_PHONE_NUMBER = os.getenv("MANAGER_ID")
+    SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 
-SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
-ADMINS_LIST = os.getenv("ADMINS_LIST")
+
+ADMINS_LIST = (706030949,)

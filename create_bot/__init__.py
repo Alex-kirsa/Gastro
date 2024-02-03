@@ -1,1 +1,1 @@
-from .create_bot import *
+from .create_bot import *  # noqa: F403
