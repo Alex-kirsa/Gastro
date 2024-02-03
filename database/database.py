@@ -1,4 +1,7 @@
 import sqlite3
+from datetime import datetime, timedelta
+from config import REMINDER_SECS
+
 
 # from icecream import ic
 
@@ -20,10 +23,12 @@ class Database:
             con.commit()
         return
 
-    def check_user_in_db(self, user_id: str):
+    def check_user_in_db(self, user_id: str, username: str):
         user = self._select(f"SELECT * FROM users WHERE user_id='{user_id}'").fetchone()
         if user is None:
-            self._request(f"INSERT INTO users(user_id) VALUES ('{user_id}')")
+            self._request(
+                f"INSERT INTO users(user_id, username) VALUES ('{user_id}', '{username}')"
+            )
 
     def get_all_users(self):
         return self._select("SELECT user_id FROM users").fetchall()
@@ -38,3 +43,15 @@ class Database:
 
     def delete_user(self, user_id):
         self._request(f"DELETE FROM users WHERE user_id='{user_id}'")
+
+    def update_datetime(self, user_id: str):
+        self._request(
+            f"UPDATE users SET last_action_datetime = '{datetime.now()}' WHERE user_id = {user_id}"
+        )
+
+    def get_users_out_of_datetime(self, datetime=datetime.now()):
+        dtm = datetime.now() - timedelta(seconds=REMINDER_SECS)
+
+        return self._select(
+            f"SELECT user_id FROM users WHERE last_action_datetime <= '{dtm}'"
+        ).fetchall()

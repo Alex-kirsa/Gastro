@@ -71,7 +71,6 @@ class UserManager:
         await getattr(self, self.key_data)()
 
     async def start_message(self):
-        self.db.check_user_in_db(self.msg.from_user.id)
         await self.memory_state.finish()
         await self.msg.answer(await self.text.get_text(self.key_data))
         await asyncio.sleep(0.2)
@@ -79,10 +78,17 @@ class UserManager:
 
     async def empty(self):
         reply_markup = await self.reply_marcup.get_marcup("choose_option_to_continue")
-        await self.msg.answer(
-            await self.text.get_text("choose_option_to_continue"),
-            reply_markup=reply_markup,
-        )
+        text = await self.text.get_text("choose_option_to_continue")
+        try:
+            await self.msg.answer(
+                text,
+                reply_markup=reply_markup,
+            )
+        except:  # noqa: E722
+            await self.call.message.answer(
+                text,
+                reply_markup=reply_markup,
+            )
 
     async def get_recipe(self):
         await self.call.message.delete()
@@ -239,10 +245,14 @@ class UserManager:
         await self.states.send_me_comment_message.set()
 
     async def send_me_comment_message(self):
+        text = await self.text.get_text(
+            "new_comment", username=self.msg.from_user.username
+        )
+        await bot.send_message(CHANNEL_ID, text)
         await self.msg.copy_to(CHANNEL_ID)
         await asyncio.sleep(0.1)
         for u in ADMINS_LIST:
-            await bot.send_message(u, await self.text.get_text("new_comment"))
+            await bot.send_message(u, text)
             await self.msg.send_copy(u)
         await self.msg.answer(await self.text.get_text("message_sent"))
         await self.memory_state.finish()
@@ -306,6 +316,8 @@ class UserManager:
                 from_chat_id=mailings[-1][1],
                 message_id=mailings[-1][0],
             )
+        await asyncio.sleep(0.1)
+        await self.empty()
 
     async def admin_menu(self):
         if self.msg.from_user.id in ADMINS_LIST:
