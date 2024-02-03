@@ -26,7 +26,7 @@ class UserReplyMarkup:
             },
             "view_articles": {
                 "text": "Переглянути статті",
-                "web_app": WebAppInfo(url="https://www.google.com"),
+                "web_app": WebAppInfo(url="https://gastroloft.com.ua/uk/blog/"),
             },
             "view_latest_studio_news": {
                 "text": "Переглянути останні новини студії",
@@ -64,12 +64,17 @@ class UserReplyMarkup:
                 "text": "Змінити бажану дату",
                 "callback_data": "change_form:desired_date",
             },
+            "should_we_send_form": {
+                "text": "Надіслати запит",
+                "callback_data": "should_we_send_form",
+            },
         },
-        "should_we_send_form": {
-            "text": "Надіслати запит",
-            "callback_data": "should_we_send_form",
+        "admin_menu": {
+            "admin_menu": {
+                "text": "Розсилка всім користувачам",
+                "callback_data": "mail_to_all_users",
+            },
         },
-        "admin_menu": {"mail_to_all_users": "Розсилка всім користувачам"},
     }
 
     def __init__(self):

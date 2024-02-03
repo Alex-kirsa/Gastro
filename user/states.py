@@ -16,8 +16,6 @@ class UserStates(StatesGroup):
     admin_send_post = State()
 
     def __init__(self, state_name: str):
-        self.state: FSMContext = getattr(UserStates, str(state_name), None)
-
         self.state_name = state_name
         # self.stock = {
         #    UserStates.get_recipe: "",

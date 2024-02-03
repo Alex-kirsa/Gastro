@@ -26,7 +26,15 @@ class Database:
             self._request(f"INSERT INTO users(user_id) VALUES ('{user_id}')")
 
     def get_all_users(self):
-        return self._select("SELECT message_id, from_chat_id FROM mailings").fetchall()
+        return self._select("SELECT user_id FROM users").fetchall()
 
     def get_all_mailings(self):
         return self._select("SELECT message_id, from_chat_id FROM mailings").fetchall()
+
+    def insert_post(self, from_chat_id, message_id):
+        self._request(
+            f"INSERT INTO mailings (message_id, from_chat_id) VALUES ('{message_id}', '{from_chat_id}')"
+        )
+
+    def delete_user(self, user_id):
+        self._request(f"DELETE FROM users WHERE user_id='{user_id}'")
