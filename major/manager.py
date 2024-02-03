@@ -134,20 +134,23 @@ class UserManager:
             time_of_day = data.get("time_of_day")
 
         all_text = await self.gsheets.get_dishes(data.get("date"), time_of_day)
+        assert all_text is not None
 
-        text = []
+        food = []
 
         # ic(all_text)
+
         for el in all_text:
-            text.append(
+            # ic(el, el.get("url"), el.get("name"))
+            food.append(
                 '<a href="{url}">{text}</a>'.format(
-                    url=el.get("url"), text=el.get("text")
+                    url=el.get("url"), text=el.get("name")
                 )
             )
+        food = "\n".join(food)
 
-        text = "\n".join(text)
-
-        await self.msg.answer(await self.text.get_text(self.key_data).format(text))
+        # ic(text, type(text))
+        await self.msg.answer(await self.text.get_text("food_was_then", food=food))
 
     async def send_booking_req(self):
         await self.call.message.answer(
