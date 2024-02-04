@@ -104,7 +104,10 @@ class UserManager:
                 break
             # ic("ASD")
         try:
-            if datetime.date(day=int(date[0]), month=int(date[1]), year=int(date[2])):
+            if (
+                datetime.date(day=int(date[0]), month=int(date[1]), year=int(date[2]))
+                and len(date) == 3
+            ):
                 self.msg.text = ".".join(date)
                 return True
         except:  # noqa: E722
@@ -252,8 +255,11 @@ class UserManager:
         await self.msg.copy_to(CHANNEL_ID)
         await asyncio.sleep(0.1)
         for u in ADMINS_LIST:
-            await bot.send_message(u, text)
-            await self.msg.send_copy(u)
+            try:
+                await bot.send_message(u, text)
+                await self.msg.send_copy(u)
+            except:  # noqa: E722
+                pass
         await self.msg.answer(await self.text.get_text("message_sent"))
         await self.memory_state.finish()
 
@@ -275,16 +281,19 @@ class UserManager:
 
         for a in ADMINS_LIST:
             # await bot.copy_message(a, **await data.get("book_message"))
-            await bot.send_message(
-                chat_id=a, text=await self.text.get_text("new_booking")
-            )
-            await bot.send_message(
-                chat_id=a,
-                text=await self.text.get_text(
-                    key="change_form",
-                    **data_form,
-                ),
-            )
+            try:
+                await bot.send_message(
+                    chat_id=a, text=await self.text.get_text("new_booking")
+                )
+                await bot.send_message(
+                    chat_id=a,
+                    text=await self.text.get_text(
+                        key="change_form",
+                        **data_form,
+                    ),
+                )
+            except:  # noqa: E722
+                pass
 
         self.gs = GoogleSheets()
 
@@ -308,15 +317,22 @@ class UserManager:
 
         mailings = self.db.get_all_mailings()
 
-        if len(mailings) == 0:
+        is_empty = True
+        for i in range(1, len(mailings) + 1):
+            try:
+                await bot.copy_message(
+                    chat_id=self.call.from_user.id,
+                    from_chat_id=mailings[-i][1],
+                    message_id=mailings[-i][0],
+                )
+                is_empty = False
+            except:  # noqa: E722
+                pass
+        if is_empty is True:
             await self.call.message.answer(await self.text.get_text("no_mailing"))
-        else:
-            await bot.copy_message(
-                chat_id=self.call.from_user.id,
-                from_chat_id=mailings[-1][1],
-                message_id=mailings[-1][0],
-            )
+
         await asyncio.sleep(0.1)
+
         await self.empty()
 
     async def admin_menu(self):

@@ -1,13 +1,17 @@
 import gspread
-from config.settings import FOOD_SPREADSHEET_ID, BOOK_SPREADSHEET_ID
+from config.settings import (
+    FOOD_SPREADSHEET_ID,
+    BOOK_SPREADSHEET_ID,
+    GOOGLE_SHEETS_CREDENTIALS_PATH,
+)
 
 # import datetime
-from icecream import ic
+# from icecream import ic
 
 
 class GoogleSheets:
     def __init__(self):
-        self._gc = gspread.service_account(filename="google_sheets/credentials.json")
+        self._gc = gspread.service_account(filename=GOOGLE_SHEETS_CREDENTIALS_PATH)
         # ic(self._wks.col_values(1))
         # ic(self._wks.get_all_values())
         # self._wks = self._sh.get_worksheet(0)

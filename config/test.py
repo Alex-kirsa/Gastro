@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 
 print(datetime.now())
 print(timedelta(days=1))
