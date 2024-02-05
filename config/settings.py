@@ -1,7 +1,7 @@
 import dotenv
 import os
 
-DEBUG = False
+DEBUG = True
 
 dotenv.load_dotenv()
 if DEBUG:
