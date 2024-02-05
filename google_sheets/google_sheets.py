@@ -1,12 +1,14 @@
 import gspread
 from config.settings import (
     FOOD_SPREADSHEET_ID,
-    BOOK_SPREADSHEET_ID,
     GOOGLE_SHEETS_CREDENTIALS_PATH,
 )
 
 # import datetime
-# from icecream import ic
+from icecream import ic
+
+
+# резервація під ід 0, меню дати 1, база страв 2
 
 
 class GoogleSheets:
@@ -32,11 +34,16 @@ class GoogleSheets:
         #    # i, self._first_col_values[i]
         #    # ic("DATE")
         #    if date == self._first_col_values[i]:
+        # ic(date)
         cell = self._wks.find(date)
         if cell is None:
             return []
+        # ic(date)
         row_values = self._wks.row_values(cell.row)
         # ic(row_values)
+        if len(row_values) == 0:
+            return []
+
         if time_of_day:
             if row_values[1] == time_of_day:
                 return await self._analise(row_values)
@@ -53,11 +60,15 @@ class GoogleSheets:
         return_list: list[dict] = []
         # ic(row_values)
         # ic(date_row_values)
-        for i in range(2):
+
+        if len(date_row_values) == 1:
+            return []
+
+        for _ in range(2):
             date_row_values.pop(0)
-        # ic(date_row_values)
+        ic(date_row_values)
         for el in date_row_values:
-            # ic(el)
+            ic(el)
             row_values = self._wks.row_values(self._wks.find(el).row)
             # ic(row_values)
             return_list.append({"name": row_values[1]})
@@ -70,7 +81,7 @@ class GoogleSheets:
         return return_list
 
     async def write_book_data(self, data: dict):
-        self._sh = self._gc.open_by_key(BOOK_SPREADSHEET_ID)
+        self._sh = self._gc.open_by_key(FOOD_SPREADSHEET_ID)
         self._wks = self._sh.get_worksheet(0)
 
         self._wks.insert_row(

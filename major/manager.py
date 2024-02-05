@@ -3,7 +3,7 @@ from user.reply_marcups import UserReplyMarkup
 from user.states import UserStates
 from google_sheets import GoogleSheets
 
-from config.settings import CHANNEL_ID, MANAGER_PHONE_NUMBER, ADMINS_LIST
+from config.settings import CHANNEL_ID, MANAGER_USERNAME, ADMINS_LIST
 from create_bot import storage, bot
 
 
@@ -306,10 +306,13 @@ class UserManager:
         # await self.call.message.edit_reply_markup(None)
 
     async def contact_manager(self):
-        await bot.send_contact(
-            self.call.from_user.id,
-            phone_number=MANAGER_PHONE_NUMBER,
-            first_name="Менеджер",
+        # await bot.send_contact(
+        #    self.call.from_user.id,
+        #    chat_id=MANAGER_CHAT_ID,
+        #    first_name="Менеджер",
+        # )
+        await self.call.message.answer(
+            await self.text.get_text("manager_contact", username=MANAGER_USERNAME)
         )
 
     async def view_latest_studio_news(self):
