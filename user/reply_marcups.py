@@ -18,7 +18,9 @@ class UserReplyMarkup:
             },
             "leave_review": {
                 "text": "Залишити відгук",
-                "callback_data": "leave_review",
+                "web_app": WebAppInfo(
+                    url="https://search.google.com/local/writereview?placeid=ChIJdVQSIxjP1EARtPdNxQtWAHc"
+                ),
             },
             "contact_manager": {
                 "text": "Зв’язатись з менеджером",

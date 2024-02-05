@@ -20,7 +20,7 @@ import datetime
 
 import asyncio
 
-from icecream import ic
+# from icecream import ic
 
 
 class UserManager:
@@ -67,7 +67,7 @@ class UserManager:
         assert self.key_data is not None
 
     async def answer(self):
-        ic(self.key_data)
+        # ic(self.key_data)
         await getattr(self, self.key_data)()
 
     async def start_message(self):
@@ -131,6 +131,7 @@ class UserManager:
                     reply_markup=reply_marcup,
                 )
             else:
+                await self.msg.answer(await self.text.get_text("wait_food"))
                 self.key_data = "food_was_then"
                 await self.food_was_then()
         else:
@@ -249,15 +250,13 @@ class UserManager:
 
     async def send_me_comment_message(self):
         text = await self.text.get_text(
-            "new_comment", username=self.msg.from_user.username
+            "new_comment", username=self.msg.from_user.username, text=self.msg.text
         )
         await bot.send_message(CHANNEL_ID, text)
-        await self.msg.copy_to(CHANNEL_ID)
-        await asyncio.sleep(0.1)
+        # await asyncio.sleep(0.1)
         for u in ADMINS_LIST:
             try:
                 await bot.send_message(u, text)
-                await self.msg.send_copy(u)
             except:  # noqa: E722
                 pass
         await self.msg.answer(await self.text.get_text("message_sent"))
@@ -279,21 +278,28 @@ class UserManager:
             )
             return
 
+        text = await self.text.get_text(
+            "new_booking",
+            username=self.call.from_user.username,
+            text=await self.text.get_text(
+                key="change_form",
+                **data_form,
+            ),
+        )
+
         for a in ADMINS_LIST:
-            # await bot.copy_message(a, **await data.get("book_message"))
             try:
                 await bot.send_message(
-                    chat_id=a, text=await self.text.get_text("new_booking")
-                )
-                await bot.send_message(
                     chat_id=a,
-                    text=await self.text.get_text(
-                        key="change_form",
-                        **data_form,
-                    ),
-                )
+                    text=text,
+                ),
             except:  # noqa: E722
                 pass
+
+        await bot.send_message(
+            chat_id=CHANNEL_ID,
+            text=text,
+        ),
 
         self.gs = GoogleSheets()
 
@@ -316,6 +322,7 @@ class UserManager:
         )
 
     async def view_latest_studio_news(self):
+        await self.call.message.delete()
         await self.call.message.answer(await self.text.get_text("last_studio_new"))
 
         mailings = self.db.get_all_mailings()
@@ -329,6 +336,7 @@ class UserManager:
                     message_id=mailings[-i][0],
                 )
                 is_empty = False
+                break
             except:  # noqa: E722
                 pass
         if is_empty is True:
@@ -355,7 +363,7 @@ class UserManager:
         await self.memory_state.finish()
         users_id = self.db.get_all_users()
         cou = 0
-        ic(users_id)
+        # ic(users_id)
         for u in users_id:
             # try:
             await bot.copy_message(

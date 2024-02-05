@@ -5,7 +5,7 @@ from config.settings import (
 )
 
 # import datetime
-from icecream import ic
+# from icecream import ic
 
 
 # резервація під ід 0, меню дати 1, база страв 2
@@ -66,9 +66,9 @@ class GoogleSheets:
 
         for _ in range(2):
             date_row_values.pop(0)
-        ic(date_row_values)
+        # ic(date_row_values)
         for el in date_row_values:
-            ic(el)
+            # ic(el)
             row_values = self._wks.row_values(self._wks.find(el).row)
             # ic(row_values)
             return_list.append({"name": row_values[1]})
