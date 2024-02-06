@@ -46,6 +46,10 @@ class UserReplyMarkup:
             },
         },
         "change_form": {
+            "should_we_send_form": {
+                "text": "Надіслати запит ✅",
+                "callback_data": "should_we_send_form",
+            },
             "name": {
                 "text": "Змінити ім'я",
                 "callback_data": "change_form:name",
@@ -65,10 +69,6 @@ class UserReplyMarkup:
             "desired_date": {
                 "text": "Змінити бажану дату",
                 "callback_data": "change_form:desired_date",
-            },
-            "should_we_send_form": {
-                "text": "Надіслати запит",
-                "callback_data": "should_we_send_form",
             },
         },
         "admin_menu": {

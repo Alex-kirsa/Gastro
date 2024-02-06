@@ -193,44 +193,57 @@ class UserManager:
         cb_data = self.call.data.split(":")
         # cb_data
         # ic(cb_data)
+        await self.call.message.delete()
+        send_text_dict: dict = self.text._stock["change_form_state"]
+        await self.memory_state.set_state(self.states.change_form_state)
         if len(cb_data) > 1:
-            await self.call.message.delete()
-            await asyncio.sleep(0.1)
-            send_text_dict: dict = self.text._stock["change_form_state"]
-            await self.call.message.answer(send_text_dict.get(cb_data[1]))
-            await self.memory_state.set_state(self.states.change_form_state)
+            # await asyncio.sleep(0.1)
+            state = cb_data[1]
             # data = await self.memory_state.get_data()
             # ic(data)
             # data.update({"change_form_state": cb_data[1]})
-            await self.memory_state.update_data({"change_form_state": cb_data[1]})
-            return
-        await self.call.message.delete()
-        await asyncio.sleep(0.2)
-        await self.call.message.answer(**await self._send_change_form_message())
+        else:
+            state = list(self.text._stock["change_form_state"])[0]
+            # ic(state)
+        await self.memory_state.update_data({"change_form_state": state})
+        await self.call.message.answer(send_text_dict.get(state))
+        # await self.call.message.delete()
+        # await asyncio.sleep(0.2)
+        # await self.call.message.answer(**await self._send_change_form_message())
 
     async def _send_change_form_message(self):
-        data = await self.memory_state.get_data()
+        form_data = await self.memory_state.get_data()
+        form_data: dict = form_data.get("form_data")
         # ic(data)
-        dic = dict()
-        self.cou = 0
-        for el in self.reply_marcup.MESSAGES.get("change_form"):
-            dg = data.get(el, "")
-            if dg == "":
-                self.cou += 1
-            dic.update({f"{el}": dg})
+        # dic = dict()
+        # self.cou = 0
+        # all_form_kwargs = self.text._stock.get("change_form_state")
+        # for el in all_form_kwargs:
+        #    dg = form_data.get(el, "")
+        #    if dg == "":
+        #        self.cou += 1
+        #    dic.update({f"{el}": dg})
 
         return {
             "text": await self.text.get_text(
                 key="change_form",
-                **dic,
+                **form_data,
             ),
             "reply_markup": await self.reply_marcup.get_marcup("change_form"),
         }
 
     async def change_form_state(self):
         data = await self.memory_state.get_data()
-        # ic(data)
         change_form_state = data.get("change_form_state")
+        # if data.get("form_data") is None:
+        #    await self.memory_state.update_data({"form_data": {}})
+
+        form_data: dict = data.get("form_data")
+        if form_data is None:
+            form_data = {}
+            await self.memory_state.update_data({"form_data": {}})
+        # ic(form_data)
+        # ic(data)
 
         if change_form_state == "desired_date" and not await self._is_date(
             self.msg.text
@@ -240,9 +253,28 @@ class UserManager:
             )
         else:
             # ic(self.msg.text)
-            await self.memory_state.update_data({change_form_state: self.msg.text})
-            await asyncio.sleep(0.1)
-            await self.msg.answer(**await self._send_change_form_message())
+            # ic(change_form_state)
+            form_data.update({change_form_state: self.msg.text})
+            await self.memory_state.update_data({"form_data": form_data})
+            # await asyncio.sleep(0.1)
+
+            if len(form_data) == len(self.text._stock.get("change_form_state")):
+                text_dict: dict = await self._send_change_form_message()
+            else:
+                list_states = list(self.text._stock["change_form_state"])
+                state_index = list_states.index(change_form_state)
+                # await self.memory_state.set_state(list_states[state_index + 1])
+                await self.memory_state.update_data(
+                    {"change_form_state": list_states[state_index + 1]}
+                )
+                # ic(list_states[state_index + 1])
+                text_dict = {
+                    "text": self.text._stock["change_form_state"].get(
+                        list_states[state_index + 1]
+                    )
+                }
+            await self.msg.answer(**text_dict)
+            # await self.msg.answer(**await self._send_change_form_message())
 
     async def leave_review(self):
         await self.call.message.answer(await self.text.get_text("send_me_comment"))
@@ -264,15 +296,16 @@ class UserManager:
 
     async def should_we_send_form(self):
         self.key_data = "should_we_send_form"
-        data: dict = await self.memory_state.get_data()
-        data_form = dict()
+        form_data: dict = await self.memory_state.get_data()
+        form_data: dict = form_data.get("form_data")
         # ic(data)
-        args_names: dict = self.reply_marcup.MESSAGES.get("change_form")
-        args_names = list(args_names.keys())[:-1]
-        for el in args_names:
-            el_data = data.get(el, "")
-            data_form.update({el: el_data})
-        if "" in data_form.values():
+        # args_names: dict = self.text._stock.get("change_form_state")
+        # ic(args_names)
+        # args_names = list(args_names.keys())[:-1]
+        # for el in args_names:
+        #    el_data = data.get(el, "")
+        #    data_form.update({el: el_data})
+        if len(form_data) < len(self.text._stock.get("change_form_state")):
             await self.call.answer(
                 await self.text.get_text("you_must_fill_blanks"), show_alert=True
             )
@@ -283,7 +316,7 @@ class UserManager:
             username=self.call.from_user.username,
             text=await self.text.get_text(
                 key="change_form",
-                **data_form,
+                **form_data,
             ),
         )
 
@@ -303,7 +336,7 @@ class UserManager:
 
         self.gs = GoogleSheets()
 
-        await self.gs.write_book_data(data_form)
+        await self.gs.write_book_data(form_data)
 
         await self.call.message.delete()
         await self.call.message.answer(await self.text.get_text("form_sent"))
