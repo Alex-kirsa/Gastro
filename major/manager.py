@@ -26,7 +26,6 @@ import asyncio
 class UserManager:
     _commands_key = {
         "/start": "start_message",
-        "/menu": "start_message",
         "/help": "start_message",
         "/admin": "admin_menu",
     }
@@ -224,6 +223,7 @@ class UserManager:
         #    if dg == "":
         #        self.cou += 1
         #    dic.update({f"{el}": dg})
+        await self.memory_state.set_state(UserStates.empty)
 
         return {
             "text": await self.text.get_text(
@@ -293,6 +293,7 @@ class UserManager:
             except:  # noqa: E722
                 pass
         await self.msg.answer(await self.text.get_text("message_sent"))
+        await self.empty()
         await self.memory_state.finish()
 
     async def should_we_send_form(self):
@@ -341,6 +342,7 @@ class UserManager:
 
         await self.call.message.delete()
         await self.call.message.answer(await self.text.get_text("form_sent"))
+        await self.empty()
 
         # await self.call.message.edit_text(await self.text.get_text(self.key_data))
         # await self.call.message.edit_reply_markup(None)
