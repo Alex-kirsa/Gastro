@@ -18,13 +18,11 @@ class UserReplyMarkup:
             },
             "leave_review": {
                 "text": "Залишити відгук",
-                "web_app": WebAppInfo(
-                    url="https://search.google.com/local/writereview?placeid=ChIJdVQSIxjP1EARtPdNxQtWAHc"
-                ),
+                "url": "https://search.google.com/local/writereview?placeid=ChIJdVQSIxjP1EARtPdNxQtWAHc",
             },
             "contact_manager": {
                 "text": "Зв’язатись з менеджером",
-                "callback_data": "contact_manager",
+                "url": "https://t.me/gastroloft",
             },
             "view_articles": {
                 "text": "Переглянути статті",
@@ -46,6 +44,10 @@ class UserReplyMarkup:
             },
         },
         "change_form": {
+            "should_we_send_form": {
+                "text": "Надіслати запит ✅",
+                "callback_data": "should_we_send_form",
+            },
             "name": {
                 "text": "Змінити ім'я",
                 "callback_data": "change_form:name",
@@ -58,18 +60,14 @@ class UserReplyMarkup:
                 "text": "Змінити подію",
                 "callback_data": "change_form:action",
             },
-            "num_of_people": {
-                "text": "Змінити кількість людей",
-                "callback_data": "change_form:num_of_people",
-            },
-            "desired_date": {
-                "text": "Змінити бажану дату",
-                "callback_data": "change_form:desired_date",
-            },
-            "should_we_send_form": {
-                "text": "Надіслати запит",
-                "callback_data": "should_we_send_form",
-            },
+            # "num_of_people": {
+            #    "text": "Змінити кількість людей",
+            #    "callback_data": "change_form:num_of_people",
+            # },
+            # "desired_date": {
+            #    "text": "Змінити бажану дату",
+            #    "callback_data": "change_form:desired_date",
+            # },
         },
         "admin_menu": {
             "admin_menu": {

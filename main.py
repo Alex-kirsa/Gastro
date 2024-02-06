@@ -16,4 +16,4 @@ if __name__ == "__main__":
     dp.middleware.setup(UsersLastActionMiddlewear())
     loop.create_task(reminder_func())
 
-    executor.start_polling(dp, skip_updates=False)
+    executor.start_polling(dp, skip_updates=True)
