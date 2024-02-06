@@ -62,14 +62,14 @@ class UserReplyMarkup:
                 "text": "Змінити подію",
                 "callback_data": "change_form:action",
             },
-            "num_of_people": {
-                "text": "Змінити кількість людей",
-                "callback_data": "change_form:num_of_people",
-            },
-            "desired_date": {
-                "text": "Змінити бажану дату",
-                "callback_data": "change_form:desired_date",
-            },
+            # "num_of_people": {
+            #    "text": "Змінити кількість людей",
+            #    "callback_data": "change_form:num_of_people",
+            # },
+            # "desired_date": {
+            #    "text": "Змінити бажану дату",
+            #    "callback_data": "change_form:desired_date",
+            # },
         },
         "admin_menu": {
             "admin_menu": {
