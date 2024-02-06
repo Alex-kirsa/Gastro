@@ -18,13 +18,11 @@ class UserReplyMarkup:
             },
             "leave_review": {
                 "text": "Залишити відгук",
-                "web_app": WebAppInfo(
-                    url="https://search.google.com/local/writereview?placeid=ChIJdVQSIxjP1EARtPdNxQtWAHc"
-                ),
+                "url": "https://search.google.com/local/writereview?placeid=ChIJdVQSIxjP1EARtPdNxQtWAHc",
             },
             "contact_manager": {
                 "text": "Зв’язатись з менеджером",
-                "callback_data": "contact_manager",
+                "url": "https://t.me/gastroloft",
             },
             "view_articles": {
                 "text": "Переглянути статті",
