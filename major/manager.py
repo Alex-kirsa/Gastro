@@ -26,6 +26,7 @@ import asyncio
 class UserManager:
     _commands_key = {
         "/start": "start_message",
+        "/menu": "start_message",
         "/help": "start_message",
         "/admin": "admin_menu",
     }
