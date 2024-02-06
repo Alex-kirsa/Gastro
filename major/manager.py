@@ -28,6 +28,7 @@ class UserManager:
         "/start": "start_message",
         "/help": "start_message",
         "/admin": "admin_menu",
+        "/menu": "empty",
     }
 
     def __init__(

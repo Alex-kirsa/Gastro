@@ -1,5 +1,6 @@
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher import FSMContext
+
+# from aiogram.dispatcher import FSMContext
 
 # from create_bot import loop
 # import asyncio
