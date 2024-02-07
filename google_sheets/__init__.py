@@ -1,1 +1,1 @@
-from .google_sheets import GoogleSheets
+from .google_sheets import gs  # noqa: F401

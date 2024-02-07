@@ -1,7 +1,7 @@
 from user.text import UserText
 from user.reply_marcups import UserReplyMarkup
 from user.states import UserStates
-from google_sheets import GoogleSheets
+from google_sheets import gs
 
 from config.settings import CHANNEL_ID, MANAGER_USERNAME, ADMINS_LIST
 from create_bot import storage, bot
@@ -28,6 +28,7 @@ class UserManager:
         "/start": "start_message",
         "/help": "start_message",
         "/admin": "admin_menu",
+        "/menu": "empty",
     }
 
     def __init__(
@@ -94,7 +95,8 @@ class UserManager:
         await self.call.message.delete()
         self.key_data = "enter_date"
         await self.call.message.answer(await self.text.get_text(self.key_data))
-        await getattr(self.states, self.key_data).set()
+        await self.memory_state.set_state(self.states.enter_date)
+        # await getattr(self.states, self.key_data).set()
 
     async def _is_date(self, msg: str) -> bool:
         date = list()
@@ -118,10 +120,9 @@ class UserManager:
         if await self._is_date(self.msg.text):
             await self.memory_state.finish()
 
-            self.gsheets = GoogleSheets()
             await self.memory_state.update_data({"date": self.msg.text})
 
-            if await self.gsheets.time_of_day_are_two(self.msg.text):
+            if await gs.time_of_day_are_two(self.msg.text):
                 self.key_data = "when_event_happened"
                 reply_marcup = await self.reply_marcup.get_marcup(
                     key=self.key_data, row_width=2
@@ -135,7 +136,7 @@ class UserManager:
                 self.key_data = "food_was_then"
                 await self.food_was_then()
         else:
-            await self.msg.answer(await self.text.get_text(self.states.state_name))
+            await self.msg.answer(await self.text.get_text(self.key_data))
 
     async def when_event_happened(self):
 
@@ -144,7 +145,7 @@ class UserManager:
             {"time_of_day": self.call.data.split(":")[1]}
         )
         self.key_data = "food_was_then"
-        self.gsheets = GoogleSheets()
+        # self.gsheets = GoogleSheets()
         await self.food_was_then()
         # await self.msg.answer(self.text.get_text(self.key_data))
 
@@ -155,11 +156,12 @@ class UserManager:
         if "time_of_day" in data:
             time_of_day = data.get("time_of_day")
 
-        all_text = await self.gsheets.get_dishes(data.get("date"), time_of_day)
+        all_text = await gs.get_dishes(data.get("date"), time_of_day)
         assert all_text is not None
 
         if all_text == []:
             await self.msg.answer(await self.text.get_text("no_food"))
+            await self.empty()
             return
 
         food = []
@@ -182,6 +184,7 @@ class UserManager:
             source = self.msg
 
         await source.answer(await self.text.get_text("food_was_then", food=food))
+        await self.empty()
 
     async def send_booking_req(self):
         await self.call.message.answer(
@@ -300,13 +303,6 @@ class UserManager:
         self.key_data = "should_we_send_form"
         form_data: dict = await self.memory_state.get_data()
         form_data: dict = form_data.get("form_data")
-        # ic(data)
-        # args_names: dict = self.text._stock.get("change_form_state")
-        # ic(args_names)
-        # args_names = list(args_names.keys())[:-1]
-        # for el in args_names:
-        #    el_data = data.get(el, "")
-        #    data_form.update({el: el_data})
         if len(form_data) < len(self.text._stock.get("change_form_state")):
             await self.call.answer(
                 await self.text.get_text("you_must_fill_blanks"), show_alert=True
@@ -321,7 +317,6 @@ class UserManager:
                 **form_data,
             ),
         )
-
         for a in ADMINS_LIST:
             try:
                 await bot.send_message(
@@ -335,24 +330,13 @@ class UserManager:
             chat_id=CHANNEL_ID,
             text=text,
         ),
-
-        self.gs = GoogleSheets()
-
-        await self.gs.write_book_data(form_data)
-
         await self.call.message.delete()
+        await gs.write_book_data(form_data)
         await self.call.message.answer(await self.text.get_text("form_sent"))
         await self.empty()
-
-        # await self.call.message.edit_text(await self.text.get_text(self.key_data))
-        # await self.call.message.edit_reply_markup(None)
+        await self.memory_state.finish()
 
     async def contact_manager(self):
-        # await bot.send_contact(
-        #    self.call.from_user.id,
-        #    chat_id=MANAGER_CHAT_ID,
-        #    first_name="Менеджер",
-        # )
         await self.call.message.answer(
             await self.text.get_text("manager_contact", username=MANAGER_USERNAME)
         )
