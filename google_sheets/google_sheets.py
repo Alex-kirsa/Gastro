@@ -17,41 +17,54 @@ class GoogleSheets:
     def __init__(self):
         self._gc = gspread.service_account(filename=GOOGLE_SHEETS_CREDENTIALS_PATH)
         self._sh = self._gc.open_by_key(FOOD_SPREADSHEET_ID)
-        self._wks: list[gspread.Worksheet] = [
-            gspread.Worksheet,
-            gspread.Worksheet,
-            gspread.Worksheet,
-        ]  # кожен об'єкт стане листком
+        # self._wks: list[gspread.Worksheet] = [
+        #    gspread.Worksheet,
+        #    gspread.Worksheet,
+        #    gspread.Worksheet,
+        # ]  # кожен об'єкт стане аркушем
+        self._sheets_data: list[list[list]] = [
+            self._sh.get_worksheet(0),  # [],
+            [],
+            [],
+        ]  # кожен об'єкт перетвориться на список всіх рядків аркушу
 
     async def update_workspace(self):
         ic("update_workspace")
-        for i in range(3):
-            self._wks[i] = self._sh.get_worksheet(i)
+        for i in range(1, 3):
+            wks = self._sh.get_worksheet(i)
+            # self._wks[i] = self._sh.get_worksheet(i)
+            self._sheets_data[i] = wks.get_all_values()
         await asyncio.sleep(60 * 5)
         await self.update_workspace()
 
     async def time_of_day_are_two(self, date: str) -> bool:
-        wks = self._wks[1]
-        return len(wks.findall(date)) == 2
+        # ic(date)
+        all_values = self._sheets_data[1]
+        date_count = 0
+        for row in all_values:
+            # ic(row[0])
+            if row[0] == date:
+                date_count += 1
+        # ic(date_count)
+        return date_count == 2
 
     async def get_dishes(self, date: str, time_of_day: str = None):
-        wks = self._wks[1]
-        all_values = wks.get_all_values()
+        all_values = self._sheets_data[1]
         for row in all_values:
             if row[0] == date:
                 if time_of_day:
                     if row[1] == time_of_day:
-                        return await self._analise(row)
+                        return await self._analise(row.copy())
                 else:
-                    return await self._analise(row)
+                    return await self._analise(row.copy())
+        # ic(all_values)
         return []
 
     async def _analise(self, date_row_values: list):
         while "" in date_row_values:
             date_row_values.remove("")
 
-        wks = self._wks[2]
-        all_values = wks.get_all_values()
+        all_values = self._sheets_data[2]
         return_list: list[dict] = []
 
         if len(date_row_values) == 1:
@@ -73,7 +86,7 @@ class GoogleSheets:
         return return_list
 
     async def write_book_data(self, data: dict):
-        wks = self._wks[0]
+        wks: gspread.Worksheet = self._sheets_data[0]
 
         wks.insert_row(
             list(data.values()),

@@ -95,7 +95,8 @@ class UserManager:
         await self.call.message.delete()
         self.key_data = "enter_date"
         await self.call.message.answer(await self.text.get_text(self.key_data))
-        await getattr(self.states, self.key_data).set()
+        await self.memory_state.set_state(self.states.enter_date)
+        # await getattr(self.states, self.key_data).set()
 
     async def _is_date(self, msg: str) -> bool:
         date = list()
@@ -119,7 +120,6 @@ class UserManager:
         if await self._is_date(self.msg.text):
             await self.memory_state.finish()
 
-            # self.gsheets = GoogleSheets()
             await self.memory_state.update_data({"date": self.msg.text})
 
             if await gs.time_of_day_are_two(self.msg.text):
@@ -136,7 +136,7 @@ class UserManager:
                 self.key_data = "food_was_then"
                 await self.food_was_then()
         else:
-            await self.msg.answer(await self.text.get_text(self.states.state_name))
+            await self.msg.answer(await self.text.get_text(self.key_data))
 
     async def when_event_happened(self):
 
@@ -161,6 +161,7 @@ class UserManager:
 
         if all_text == []:
             await self.msg.answer(await self.text.get_text("no_food"))
+            await self.empty()
             return
 
         food = []
