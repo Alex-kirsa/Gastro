@@ -160,7 +160,10 @@ class UserManager:
         assert all_text is not None
 
         if all_text == []:
-            await self.msg.answer(await self.text.get_text("no_food"))
+            if self.msg:
+                await self.msg.answer(await self.text.get_text("no_food"))
+            else:
+                await self.call.message.answer(await self.text.get_text("no_food"))
             await self.empty()
             return
 
@@ -184,6 +187,7 @@ class UserManager:
             source = self.msg
 
         await source.answer(await self.text.get_text("food_was_then", food=food))
+        await asyncio.sleep(3)
         await self.empty()
 
     async def send_booking_req(self):
@@ -385,12 +389,12 @@ class UserManager:
         cou = 0
         # ic(users_id)
         for u in users_id:
-            # try:
-            await bot.copy_message(
-                u[0], from_chat_id=self.msg.chat.id, message_id=self.msg.message_id
-            )
-            # except:  # noqa: E722
-            #    self.db.delete_user(u[0])
+            try:
+                await bot.copy_message(
+                    u[0], from_chat_id=self.msg.chat.id, message_id=self.msg.message_id
+                )
+            except Exception as ex:  # noqa: E722
+               pass
             cou += 1
         await self.msg.answer(await self.text.get_text("admin_post_sent", cou=cou))
         self.db.insert_post(self.msg.chat.id, self.msg.message_id)
