@@ -80,19 +80,17 @@ class UserManager:
     async def empty(self):
         reply_markup = await self.reply_marcup.get_marcup("choose_option_to_continue")
         text = await self.text.get_text("choose_option_to_continue")
-        try:
-            await self.msg.answer(
-                text,
-                reply_markup=reply_markup,
-            )
-        except:  # noqa: E722
-            await self.call.message.answer(
-                text,
-                reply_markup=reply_markup,
-            )
+        source = self.msg or self.call.message
+        await source.answer(
+            text,
+            reply_markup=reply_markup,
+        )
 
     async def get_recipe(self):
-        await self.call.message.delete()
+        try:
+            await self.call.message.delete()
+        except:  # noqa: E722
+            pass
         self.key_data = "enter_date"
         await self.call.message.answer(await self.text.get_text(self.key_data))
         await self.memory_state.set_state(self.states.enter_date)
@@ -140,7 +138,10 @@ class UserManager:
 
     async def when_event_happened(self):
 
-        await self.call.message.delete()
+        try:
+            await self.call.message.delete()
+        except:  # noqa: E722
+            pass
         await self.memory_state.update_data(
             {"time_of_day": self.call.data.split(":")[1]}
         )
@@ -160,7 +161,12 @@ class UserManager:
         assert all_text is not None
 
         if all_text == []:
-            await self.msg.answer(await self.text.get_text("no_food"))
+            if self.call:
+                source = self.call.message
+            else:
+                source = self.msg
+
+            await source.answer(await self.text.get_text("no_food"))
             await self.empty()
             return
 
@@ -196,7 +202,10 @@ class UserManager:
         cb_data = self.call.data.split(":")
         # cb_data
         # ic(cb_data)
-        await self.call.message.delete()
+        try:
+            await self.call.message.delete()
+        except:  # noqa: E722
+            pass
         send_text_dict: dict = self.text._stock["change_form_state"]
         await self.memory_state.set_state(self.states.change_form_state)
         if len(cb_data) > 1:
@@ -210,7 +219,10 @@ class UserManager:
             # ic(state)
         await self.memory_state.update_data({"change_form_state": state})
         await self.call.message.answer(send_text_dict.get(state))
-        # await self.call.message.delete()
+        try:
+            await self.call.message.delete()
+        except:  # noqa: E722
+            pass
         # await asyncio.sleep(0.2)
         # await self.call.message.answer(**await self._send_change_form_message())
 
@@ -330,7 +342,10 @@ class UserManager:
             chat_id=CHANNEL_ID,
             text=text,
         ),
-        await self.call.message.delete()
+        try:
+            await self.call.message.delete()
+        except:  # noqa: E722
+            pass
         await gs.write_book_data(form_data)
         await self.call.message.answer(await self.text.get_text("form_sent"))
         await self.empty()
@@ -342,7 +357,10 @@ class UserManager:
         )
 
     async def view_latest_studio_news(self):
-        await self.call.message.delete()
+        try:
+            await self.call.message.delete()
+        except:  # noqa: E722
+            pass
         await self.call.message.answer(await self.text.get_text("last_studio_new"))
 
         mailings = self.db.get_all_mailings()
@@ -376,21 +394,35 @@ class UserManager:
             await self.empty()
 
     async def mail_to_all_users(self):
+        try:
+            await self.call.message.delete()
+        except:  # noqa: E722
+            pass
         await self.memory_state.set_state(self.states.admin_send_post)
         await self.call.message.answer(await self.text.get_text("admin_send_post"))
+
+    async def _send_mainling(self, u):
+        try:
+            await bot.copy_message(
+                u[0], from_chat_id=self.msg.chat.id, message_id=self.msg.message_id
+            )
+            self.cou += 1
+        except:  # noqa: E722
+            pass
 
     async def admin_send_post(self):
         await self.memory_state.finish()
         users_id = self.db.get_all_users()
-        cou = 0
+        self.cou = 0
         # ic(users_id)
+
+        loop = asyncio.get_event_loop()
+        tasks = []
         for u in users_id:
-            # try:
-            await bot.copy_message(
-                u[0], from_chat_id=self.msg.chat.id, message_id=self.msg.message_id
-            )
-            # except:  # noqa: E722
-            #    self.db.delete_user(u[0])
-            cou += 1
-        await self.msg.answer(await self.text.get_text("admin_post_sent", cou=cou))
+            task = loop.create_task(self._send_mainling(u))
+            tasks.append(task)
+
+        await asyncio.gather(*tasks)
+
+        await self.msg.answer(await self.text.get_text("admin_post_sent", cou=self.cou))
         self.db.insert_post(self.msg.chat.id, self.msg.message_id)
