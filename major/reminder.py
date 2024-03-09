@@ -18,8 +18,9 @@ async def reminder_func():
             try:
                 await bot.send_message(user_id, await user_text.get_text("reminder"))
                 db.update_datetime(user_id)
-            except ChatNotFound:
-                await db.delete_user(user_id)
+            except:  # noqa: E722
+                pass
+                # await db.delete_user(user_id)
 
         del db, user_text, users_have_to_reminder
         await asyncio.sleep(REMINDER_SECS)

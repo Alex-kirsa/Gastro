@@ -30,11 +30,12 @@ class GoogleSheets:
 
     async def update_workspace(self):
         ic("update_workspace")
+        self._sh = self._gc.open_by_key(FOOD_SPREADSHEET_ID)
         for i in range(1, 3):
             wks = self._sh.get_worksheet(i)
             # self._wks[i] = self._sh.get_worksheet(i)
             self._sheets_data[i] = wks.get_all_values()
-        await asyncio.sleep(60 * 5)
+        await asyncio.sleep(5)
         await self.update_workspace()
 
     async def time_of_day_are_two(self, date: str) -> bool:
