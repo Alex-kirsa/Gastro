@@ -35,7 +35,7 @@ class GoogleSheets:
             wks = self._sh.get_worksheet(i)
             # self._wks[i] = self._sh.get_worksheet(i)
             self._sheets_data[i] = wks.get_all_values()
-        await asyncio.sleep(5)
+        await asyncio.sleep(60 * 5)
         await self.update_workspace()
 
     async def time_of_day_are_two(self, date: str) -> bool:
