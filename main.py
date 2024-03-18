@@ -1,6 +1,7 @@
 import user.handlers  # noqa: F401
 from major.middlewear import UsersLastActionMiddlewear
-from major.reminder import reminder_func
+
+# from major.reminder import reminder_func
 
 # import asyncio
 
@@ -16,7 +17,7 @@ from google_sheets import gs
 # loop.create_task(check_admin_offer())
 if __name__ == "__main__":
     dp.middleware.setup(UsersLastActionMiddlewear())
-    loop.create_task(reminder_func())
+    # loop.create_task(reminder_func())
     loop.create_task(gs.update_workspace())
 
     executor.start_polling(dp, skip_updates=True)
